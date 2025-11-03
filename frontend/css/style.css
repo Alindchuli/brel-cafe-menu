@@ -332,9 +332,11 @@ body {
     font-size: 0.9rem;
 }
 
-.category-btn:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
+@media (hover: hover) {
+    .category-btn:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
 }
 
 .category-btn.active {
@@ -365,11 +367,6 @@ body {
     border: 1px solid var(--border-color);
 }
 
-.menu-item:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-}
-
 .menu-item-image {
     position: relative;
     width: 100%;
@@ -384,8 +381,15 @@ body {
     transition: var(--transition);
 }
 
-.menu-item:hover .menu-item-image img {
-    transform: scale(1.05);
+@media (hover: hover) {
+    .menu-item:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .menu-item:hover .menu-item-image img {
+        transform: scale(1.05);
+    }
 }
 
 .price-badge {
