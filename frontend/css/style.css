@@ -83,7 +83,7 @@ body {
 
 /* Header */
 .header {
-    background: linear-gradient(135deg, var(--primary-color), #ea580c);
+    background: var(--primary-color);
     color: white;
     padding: 1rem 0;
     box-shadow: var(--shadow-md);
