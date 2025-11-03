@@ -324,7 +324,7 @@ class AdminPanel {
                     <div class="recent-item-meta">
                         ${item.category_name || 'No category'} • 
                         ${item.available ? 'Available' : 'Unavailable'}
-                        ${item.price ? ` • $${parseFloat(item.price).toFixed(2)}` : ''}
+                        ${item.price ? ` • ${Math.round(parseFloat(item.price))} IQD` : ''}
                     </div>
                 </div>
             </div>
@@ -460,7 +460,7 @@ class AdminPanel {
                         ${item.title_ku ? `<br><small class="kurdish-text">${this.escapeHtml(item.title_ku)}</small>` : ''}
                     </td>
                     <td>${category ? this.escapeHtml(category.name_en) : 'No category'}</td>
-                    <td>${item.price ? `$${parseFloat(item.price).toFixed(2)}` : 'N/A'}</td>
+                    <td>${item.price ? `${Math.round(parseFloat(item.price))} IQD` : 'N/A'}</td>
                     <td>
                         <span class="status-badge ${item.available ? 'available' : 'unavailable'}">
                             ${item.available ? 'Available' : 'Unavailable'}

@@ -226,7 +226,7 @@ class MenuApp {
             const title = this.getItemText(item, 'title');
             const description = this.getItemText(item, 'description');
             const categoryName = this.getCategoryText(item);
-            const priceDisplay = item.price ? `$${parseFloat(item.price).toFixed(2)}` : '';
+            const priceDisplay = item.price ? `${Math.round(parseFloat(item.price))} IQD` : '';
             
             return `
                 <div class="menu-item" data-item-id="${item.id}">
@@ -288,7 +288,7 @@ class MenuApp {
             const title = this.getItemText(item, 'title');
             const description = this.getItemText(item, 'description');
             const categoryName = this.getCategoryText(item);
-            const priceDisplay = item.price ? `$${parseFloat(item.price).toFixed(2)}` : '';
+            const priceDisplay = item.price ? `${Math.round(parseFloat(item.price))} IQD` : '';
             
             modalBody.innerHTML = `
                 <div class="item-detail">
