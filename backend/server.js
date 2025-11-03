@@ -387,6 +387,91 @@ app.get('/api/admin/menu', (req, res) => {
     });
 });
 
+// Update menu item
+app.put('/api/admin/menu/:id', requireAuth, upload.single('image'), (req, res) => {
+    const id = req.params.id;
+    const { title_en, title_ar, title_ku, description_en, description_ar, description_ku, 
+            price, category_id, available } = req.body;
+
+    if (!title_en) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'English title is required' 
+        });
+    }
+
+    // Get current item to handle image updates
+    dbGet('SELECT image_url FROM menu_items WHERE id = ?', [id])
+        .then(currentItem => {
+            if (!currentItem) {
+                return res.status(404).json({ 
+                    success: false, 
+                    message: 'Menu item not found' 
+                });
+            }
+
+            let image_url = currentItem.image_url;
+
+            // Handle image update
+            if (req.file) {
+                image_url = `frontend/assets/images/${req.file.filename}`;
+                
+                // Delete old image if it exists and is different
+                if (currentItem.image_url && currentItem.image_url !== image_url) {
+                    const oldImagePath = path.join(__dirname, '..', currentItem.image_url);
+                    if (fs.existsSync(oldImagePath)) {
+                        try {
+                            fs.unlinkSync(oldImagePath);
+                        } catch (error) {
+                            console.error('Error deleting old image file:', error);
+                        }
+                    }
+                }
+            }
+
+            const query = `
+                UPDATE menu_items 
+                SET title_en = ?, title_ar = ?, title_ku = ?, 
+                    description_en = ?, description_ar = ?, description_ku = ?,
+                    price = ?, image_url = ?, category_id = ?, available = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            `;
+
+            return dbRun(query, [
+                title_en, title_ar || null, title_ku || null,
+                description_en || null, description_ar || null, description_ku || null,
+                price || null, image_url, category_id || null, available || 1, id
+            ]);
+        })
+        .then((result) => {
+            if (result.changes === 0) {
+                return res.status(404).json({ 
+                    success: false, 
+                    message: 'Menu item not found' 
+                });
+            }
+
+            res.json({
+                success: true,
+                message: 'Menu item updated successfully',
+                item: {
+                    id: id,
+                    title_en, title_ar, title_ku,
+                    description_en, description_ar, description_ku,
+                    price, category_id, available
+                }
+            });
+        })
+        .catch(err => {
+            console.error('Database error:', err);
+            res.status(500).json({ 
+                success: false, 
+                message: 'Database error' 
+            });
+        });
+});
+
 // Delete menu item
 app.delete('/api/admin/menu/:id', requireAuth, (req, res) => {
     const id = req.params.id;
