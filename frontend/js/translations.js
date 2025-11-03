@@ -11,7 +11,7 @@ const translations = {
         'empty-title': 'No items found',
         'empty-text': 'Try adjusting your search or filter',
         'footer-title': 'Brel Cafe',
-        'footer-description': 'Serving delicious coffee & food with love',
+        'footer-description': 'Serving unforgettable flavors & time',
         'footer-contact': 'Contact',
         'footer-address': 'KRO st, Duhok, Kurdistan',
         'admin-panel-text': 'Admin Panel',
