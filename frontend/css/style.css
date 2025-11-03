@@ -494,6 +494,11 @@ body {
     gap: 0.5rem;
 }
 
+.phone-number {
+    direction: ltr;
+    unicode-bidi: embed;
+}
+
 .admin-link {
     color: var(--accent-color);
     text-decoration: none;
