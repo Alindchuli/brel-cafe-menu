@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Menu Management</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-utensils"></i>
+                <h2>Menu Admin</h2>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-section="dashboard">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="menu-items">
+                        <i class="fas fa-utensils"></i>
+                        <span>Menu Items</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="categories">
+                        <i class="fas fa-tags"></i>
+                        <span>Categories</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <span class="username" id="currentUser">Admin</span>
+                    <small>Administrator</small>
+                </div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="mobile-toggle" id="mobileToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title" id="pageTitle">Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <a href="../index.html" class="view-menu-btn">
+                    <i class="fas fa-external-link-alt"></i>
+                    View Menu
+                </a>
+            </div>
+        </header>
+
+        <!-- Content Sections -->
+        <div class="content-wrapper">
+            
+            <!-- Dashboard Section -->
+            <section class="content-section active" id="dashboard-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalItems">0</h3>
+                            <p>Total Menu Items</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalCategories">0</h3>
+                            <p>Categories</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="availableItems">0</h3>
+                            <p>Available Items</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-eye-slash"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="unavailableItems">0</h3>
+                            <p>Unavailable Items</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="recent-items">
+                    <h3><i class="fas fa-clock"></i> Recent Items</h3>
+                    <div class="recent-list" id="recentItemsList">
+                        <!-- Recent items will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Menu Items Section -->
+            <section class="content-section" id="menu-items-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-utensils"></i> Menu Items Management</h2>
+                    <button class="btn btn-primary" id="addMenuItemBtn">
+                        <i class="fas fa-plus"></i> Add Menu Item
+                    </button>
+                </div>
+                
+                <div class="filters-bar">
+                    <div class="search-group">
+                        <input type="text" id="menuItemSearch" placeholder="Search menu items...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <select id="categoryFilter" class="filter-select">
+                        <option value="">All Categories</option>
+                    </select>
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="1">Available</option>
+                        <option value="0">Unavailable</option>
+                    </select>
+                </div>
+                
+                <div class="items-table-container">
+                    <table class="items-table" id="menuItemsTable">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Title (EN)</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="menuItemsTableBody">
+                            <!-- Items will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Categories Section -->
+            <section class="content-section" id="categories-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-tags"></i> Categories Management</h2>
+                    <button class="btn btn-primary" id="addCategoryBtn">
+                        <i class="fas fa-plus"></i> Add Category
+                    </button>
+                </div>
+                
+                <div class="categories-grid" id="categoriesGrid">
+                    <!-- Categories will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section class="content-section" id="settings-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-cog"></i> Settings</h2>
+                </div>
+                
+                <div class="settings-card">
+                    <h3>System Information</h3>
+                    <div class="setting-item">
+                        <label>System Version:</label>
+                        <span>1.0.0</span>
+                    </div>
+                    <div class="setting-item">
+                        <label>Database:</label>
+                        <span>SQLite</span>
+                    </div>
+                    <div class="setting-item">
+                        <label>Last Backup:</label>
+                        <span id="lastBackup">Never</span>
+                    </div>
+                </div>
+                
+                <div class="settings-card">
+                    <h3>Actions</h3>
+                    <button class="btn btn-secondary" id="exportDataBtn">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                    <button class="btn btn-warning" id="clearCacheBtn">
+                        <i class="fas fa-broom"></i> Clear Cache
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Menu Item Modal -->
+    <div class="modal" id="menuItemModal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3 id="menuItemModalTitle">Add Menu Item</h3>
+                <button class="modal-close" id="closeMenuItemModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="menuItemForm" class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="title_en">Title (English)*</label>
+                        <input type="text" id="title_en" name="title_en" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="title_ar">Title (Arabic)</label>
+                        <input type="text" id="title_ar" name="title_ar" dir="rtl">
+                    </div>
+                    <div class="form-group">
+                        <label for="title_ku">Title (Kurdish)</label>
+                        <input type="text" id="title_ku" name="title_ku" dir="rtl">
+                    </div>
+                    <div class="form-group">
+                        <label for="category_id">Category*</label>
+                        <select id="category_id" name="category_id" required>
+                            <option value="">Select Category</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price</label>
+                        <input type="number" id="price" name="price" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="image">Image</label>
+                        <input type="file" id="image" name="image" accept="image/*">
+                        <div class="image-preview" id="imagePreview" style="display: none;">
+                            <img id="previewImg" alt="Preview">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="description_en">Description (English)</label>
+                    <textarea id="description_en" name="description_en" rows="3"></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label for="description_ar">Description (Arabic)</label>
+                    <textarea id="description_ar" name="description_ar" rows="3" dir="rtl"></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label for="description_ku">Description (Kurdish)</label>
+                    <textarea id="description_ku" name="description_ku" rows="3" dir="rtl"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="available" name="available" checked>
+                        <span class="checkmark"></span>
+                        Available
+                    </label>
+                </div>
+                
+                <input type="hidden" id="editItemId" name="editItemId">
+            </form>
+            <div class="modal-footer">
+                <button type="submit" form="menuItemForm" class="btn btn-primary" id="saveMenuItemBtn">
+                    <i class="fas fa-save"></i> Save Item
+                </button>
+                <button type="button" class="btn btn-secondary" id="cancelMenuItemBtn">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div class="modal" id="categoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="categoryModalTitle">Add Category</h3>
+                <button class="modal-close" id="closeCategoryModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="categoryForm" class="modal-body">
+                <div class="form-group">
+                    <label for="cat_name_en">Name (English)*</label>
+                    <input type="text" id="cat_name_en" name="name_en" required>
+                </div>
+                <div class="form-group">
+                    <label for="cat_name_ar">Name (Arabic)</label>
+                    <input type="text" id="cat_name_ar" name="name_ar" dir="rtl">
+                </div>
+                <div class="form-group">
+                    <label for="cat_name_ku">Name (Kurdish)</label>
+                    <input type="text" id="cat_name_ku" name="name_ku" dir="rtl">
+                </div>
+                <div class="form-group">
+                    <label for="cat_icon">Icon (Font Awesome class)</label>
+                    <input type="text" id="cat_icon" name="icon" placeholder="e.g., fas fa-coffee">
+                    <small>Example: fas fa-coffee, fas fa-pizza-slice, fas fa-birthday-cake</small>
+                </div>
+                
+                <input type="hidden" id="editCategoryId" name="editCategoryId">
+            </form>
+            <div class="modal-footer">
+                <button type="submit" form="categoryForm" class="btn btn-primary" id="saveCategoryBtn">
+                    <i class="fas fa-save"></i> Save Category
+                </button>
+                <button type="button" class="btn btn-secondary" id="cancelCategoryBtn">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h3>Confirm Delete</h3>
+            </div>
+            <div class="modal-body">
+                <p id="deleteMessage">Are you sure you want to delete this item?</p>
+                <p><strong>This action cannot be undone.</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirmDeleteBtn" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+                <button id="cancelDeleteBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <script src="js/login.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

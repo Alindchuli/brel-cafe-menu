@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Brel Cafe - کافی برێل - مقهى برێل</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <img src="assets/images/brellogo.png" alt="Brel Cafe" class="logo-image">
+            </div>
+            
+            <!-- Language Dropdown -->
+            <div class="language-dropdown">
+                <button class="dropdown-btn" id="language-dropdown-btn">
+                    <span id="current-language">EN</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="dropdown-menu" id="language-dropdown-menu">
+                    <button class="dropdown-item active" data-lang="en">
+                        <span class="flag">🇺🇸</span>
+                        <span>English</span>
+                    </button>
+                    <button class="dropdown-item" data-lang="ar">
+                        <span class="flag">🇸🇦</span>
+                        <span>العربية</span>
+                    </button>
+                    <button class="dropdown-item" data-lang="ku">
+                        <span class="flag">🏳️</span>
+                        <span>کوردی</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- Search Section -->
+        <section class="search-section">
+            <div class="container">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search menu...">
+                    <button id="searchBtn" class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories Filter -->
+        <section class="categories-section">
+            <div class="container">
+                <div class="categories-filter" id="categoriesFilter">
+                    <button class="category-btn active" data-category="all" id="all-btn">
+                        <i class="fas fa-th-large"></i>
+                        <span id="all-text">All</span>
+                    </button>
+                    <!-- Categories will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Menu Items -->
+        <section class="menu-section">
+            <div class="container">
+                <div id="menuGrid" class="menu-grid">
+                    <!-- Menu items will be loaded here -->
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="loading-state">
+                    <div class="spinner"></div>
+                    <p id="loading-text">Loading menu...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-search"></i>
+                    <h3 id="empty-title">No items found</h3>
+                    <p id="empty-text">Try adjusting your search or filter</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section footer-logo-section">
+                    <img src="assets/images/brellogo.png" alt="Brel Cafe" class="footer-logo">
+                    <p id="footer-description">Serving unforgettable flavors & time</p>
+                </div>
+                <div class="footer-section">
+                    <h4 id="footer-contact">Contact</h4>
+                    <div class="contact-info">
+                        <p><i class="fas fa-phone"></i> +964 750 200 3033</p>
+                        <p><i class="fas fa-map-marker-alt"></i> <span id="footer-address">KRO st, Duhok, Kurdistan</span></p>
+                    </div>
+                </div>
+                <!-- <div class="footer-section">
+                    <h4 id="footer-admin">Admin</h4>
+                    <a href="/admin" class="admin-link">
+                        <i class="fas fa-cog"></i> <span id="admin-panel-text">Admin Panel</span>
+                    </a>
+                </div> -->
+            </div>
+        </div>
+    </footer>
+
+    <!-- Item Detail Modal -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" id="closeModal">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="modalBody">
+                <!-- Item details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button id="backToTopBtn" class="back-to-top" title="Back to top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <script src="js/translations.js"></script>
+    <script src="js/menu.js"></script>
+</body>
+</html>
