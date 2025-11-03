@@ -1,5 +1,6 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require('pg');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
@@ -9,9 +10,77 @@ const crypto = require('crypto');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Database connection
-const dbPath = path.join(__dirname, '..', 'database', 'menu.db');
-const db = new sqlite3.Database(dbPath);
+// Database connection - PostgreSQL (Railway) or SQLite (local)
+let db;
+const isPostgres = !!process.env.DATABASE_URL;
+
+if (isPostgres) {
+    // PostgreSQL connection for Railway
+    db = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    console.log('Connected to PostgreSQL database');
+} else {
+    // SQLite connection for local development
+    const dbPath = path.join(__dirname, '..', 'database', 'menu.db');
+    const dbDir = path.dirname(dbPath);
+    if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+    }
+    db = new sqlite3.Database(dbPath);
+    console.log('Connected to SQLite database');
+}
+
+// Database helper functions for PostgreSQL/SQLite compatibility
+async function dbQuery(query, params = []) {
+    if (isPostgres) {
+        const result = await db.query(query, params);
+        return result.rows;
+    } else {
+        return new Promise((resolve, reject) => {
+            db.all(query, params, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+    }
+}
+
+async function dbGet(query, params = []) {
+    if (isPostgres) {
+        const result = await db.query(query, params);
+        return result.rows[0] || null;
+    } else {
+        return new Promise((resolve, reject) => {
+            db.get(query, params, (err, row) => {
+                if (err) reject(err);
+                else resolve(row || null);
+            });
+        });
+    }
+}
+
+async function dbRun(query, params = []) {
+    if (isPostgres) {
+        const result = await db.query(query, params);
+        return { 
+            lastID: result.rows[0]?.id || null,
+            changes: result.rowCount || 0
+        };
+    } else {
+        return new Promise((resolve, reject) => {
+            db.run(query, params, function(err) {
+                if (err) reject(err);
+                else resolve({ lastID: this.lastID, changes: this.changes });
+            });
+        });
+    }
+}
+
+// Middleware
+
+console.log(`📁 Database location: ${dbPath}`);
 
 // Middleware
 app.use(cors());
@@ -109,33 +178,33 @@ app.get('/admin', (req, res) => {
 });
 
 // Categories routes
-app.get('/api/categories', (req, res) => {
-    db.all('SELECT * FROM categories ORDER BY name_en', (err, categories) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database error' });
-        }
+app.get('/api/categories', async (req, res) => {
+    try {
+        const categories = await dbQuery('SELECT * FROM categories ORDER BY name_en');
         res.json(categories);
-    });
+    } catch (err) {
+        console.error('Database error:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
 });
 
 // Menu items routes
-app.get('/api/menu', (req, res) => {
-    const query = `
-        SELECT mi.*, c.name_en as category_name_en, c.name_ar as category_name_ar, c.name_ku as category_name_ku
-        FROM menu_items mi 
-        LEFT JOIN categories c ON mi.category_id = c.id 
-        WHERE mi.available = 1
-        ORDER BY c.name_en, mi.title_en
-    `;
-    
-    db.all(query, (err, items) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database error' });
-        }
+app.get('/api/menu', async (req, res) => {
+    try {
+        const query = `
+            SELECT mi.*, c.name_en as category_name_en, c.name_ar as category_name_ar, c.name_ku as category_name_ku
+            FROM menu_items mi 
+            LEFT JOIN categories c ON mi.category_id = c.id 
+            WHERE mi.available = ${isPostgres ? 'true' : '1'}
+            ORDER BY c.name_en, mi.title_en
+        `;
+        
+        const items = await dbQuery(query);
         res.json(items);
-    });
+    } catch (err) {
+        console.error('Database error:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
 });
 
 // Get menu items by category
