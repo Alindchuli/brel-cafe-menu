@@ -14,6 +14,8 @@ class AdminPanel {
         this.deleteCategoryId = null;
         this.editItemId = null;
         this.editCategoryId = null;
+        this.selectedItems = new Set();
+        this.selectedCategories = new Set();
         
         this.init();
     }
@@ -85,6 +87,9 @@ class AdminPanel {
                 }
             });
         }
+        
+        // Keyboard shortcuts for faster workflow
+        this.bindKeyboardShortcuts();
         
         // Menu Item Modal Events
         this.bindMenuItemEvents();
@@ -357,16 +362,22 @@ class AdminPanel {
         }
         
         container.innerHTML = this.categories.map(category => `
-            <div class="category-card">
+            <div class="category-card" data-category-id="${category.id}">
+                <div class="category-checkbox">
+                    <input type="checkbox" class="category-checkbox-item" value="${category.id}" onchange="adminPanel.toggleCategorySelection(${category.id})">
+                </div>
                 <div class="category-header">
                     <div class="category-icon">
                         <i class="${category.icon || 'fas fa-utensils'}"></i>
                     </div>
                     <div class="category-actions">
-                        <button class="btn btn-sm btn-secondary" onclick="adminPanel.editCategory(${category.id})">
+                        <button class="btn btn-sm btn-secondary" onclick="adminPanel.editCategory(${category.id})" title="Edit Category (E)">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="adminPanel.deleteCategory(${category.id}, '${this.escapeHtml(category.name_en)}')">
+                        <button class="btn btn-sm btn-warning" onclick="adminPanel.quickDeleteCategory(${category.id}, '${this.escapeHtml(category.name_en)}')" title="Quick Delete (Shift+D)">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="adminPanel.deleteCategory(${category.id}, '${this.escapeHtml(category.name_en)}')" title="Delete with Confirmation (D)">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -381,6 +392,9 @@ class AdminPanel {
                 </div>
             </div>
         `).join('');
+        
+        // Update bulk actions visibility
+        this.updateCategoryBulkActions();
     }
     
     populateCategorySelects() {
@@ -437,7 +451,7 @@ class AdminPanel {
         if (items.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" style="text-align: center; color: var(--text-secondary);">
+                    <td colspan="7" style="text-align: center; color: var(--text-secondary);">
                         ${filteredItems ? 'No items match your search criteria' : 'No menu items yet. Add one to get started!'}
                     </td>
                 </tr>
@@ -448,7 +462,10 @@ class AdminPanel {
         tbody.innerHTML = items.map(item => {
             const category = this.categories.find(c => c.id === item.category_id);
             return `
-                <tr>
+                <tr data-item-id="${item.id}">
+                    <td>
+                        <input type="checkbox" class="item-checkbox" value="${item.id}" onchange="adminPanel.toggleItemSelection(${item.id})">
+                    </td>
                     <td>
                         <div class="table-image">
                             <img src="${item.image ? `/assets/images/${item.image}` : '/assets/images/placeholder.jpg'}" alt="${item.title_en}">
@@ -468,10 +485,13 @@ class AdminPanel {
                     </td>
                     <td>
                         <div class="table-actions">
-                            <button class="btn btn-sm btn-secondary" onclick="adminPanel.editMenuItem(${item.id})">
+                            <button class="btn btn-sm btn-secondary" onclick="adminPanel.editMenuItem(${item.id})" title="Edit (E)">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="adminPanel.deleteMenuItem(${item.id}, '${this.escapeHtml(item.title_en)}')">
+                            <button class="btn btn-sm btn-danger" onclick="adminPanel.quickDeleteMenuItem(${item.id}, '${this.escapeHtml(item.title_en)}')" title="Quick Delete (Shift+D)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning" onclick="adminPanel.deleteMenuItem(${item.id}, '${this.escapeHtml(item.title_en)}')" title="Delete with Confirmation (D)">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -479,6 +499,9 @@ class AdminPanel {
                 </tr>
             `;
         }).join('');
+        
+        // Update bulk actions visibility
+        this.updateBulkActions();
     }
     
     filterMenuItems() {
@@ -613,6 +636,134 @@ class AdminPanel {
         this.openDeleteModal('menu item', itemName);
     }
     
+    // Quick delete without confirmation (for faster workflow)
+    async quickDeleteMenuItem(itemId, itemName) {
+        if (!confirm(`⚡ Quick Delete: "${itemName}"?\n\nThis action cannot be undone.`)) {
+            return;
+        }
+        
+        try {
+            // Optimistic UI update - remove from view immediately
+            const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
+            if (row) {
+                row.style.opacity = '0.5';
+                row.style.pointerEvents = 'none';
+            }
+            
+            const response = await fetch(`/api/admin/menu/${itemId}`, {
+                method: 'DELETE',
+                headers: this.getAuthHeaders()
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                // Remove from local array for instant UI update
+                this.menuItems = this.menuItems.filter(item => item.id !== itemId);
+                this.renderMenuItems();
+                this.showToast(`⚡ "${itemName}" deleted quickly!`, 'success');
+            } else {
+                // Restore row if deletion failed
+                if (row) {
+                    row.style.opacity = '1';
+                    row.style.pointerEvents = 'auto';
+                }
+                this.showToast(result.message || 'Error deleting item', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting item:', error);
+            this.showToast('Error deleting item', 'error');
+            // Restore row
+            const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
+            if (row) {
+                row.style.opacity = '1';
+                row.style.pointerEvents = 'auto';
+            }
+        }
+    }
+    
+    // Bulk selection management
+    toggleItemSelection(itemId) {
+        if (this.selectedItems.has(itemId)) {
+            this.selectedItems.delete(itemId);
+        } else {
+            this.selectedItems.add(itemId);
+        }
+        this.updateBulkActions();
+    }
+    
+    selectAllItems() {
+        const checkboxes = document.querySelectorAll('.item-checkbox');
+        const selectAll = document.getElementById('selectAllItems');
+        
+        if (selectAll.checked) {
+            checkboxes.forEach(cb => {
+                cb.checked = true;
+                this.selectedItems.add(parseInt(cb.value));
+            });
+        } else {
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+                this.selectedItems.delete(parseInt(cb.value));
+            });
+        }
+        this.updateBulkActions();
+    }
+    
+    updateBulkActions() {
+        const bulkActions = document.getElementById('bulkActions');
+        const selectedCount = document.getElementById('selectedCount');
+        
+        if (bulkActions) {
+            if (this.selectedItems.size > 0) {
+                bulkActions.style.display = 'flex';
+                if (selectedCount) {
+                    selectedCount.textContent = this.selectedItems.size;
+                }
+            } else {
+                bulkActions.style.display = 'none';
+            }
+        }
+    }
+    
+    async bulkDeleteItems() {
+        const count = this.selectedItems.size;
+        if (count === 0) return;
+        
+        if (!confirm(`🗑️ Bulk Delete ${count} items?\n\nThis action cannot be undone.`)) {
+            return;
+        }
+        
+        try {
+            const deletePromises = Array.from(this.selectedItems).map(itemId => 
+                fetch(`/api/admin/menu/${itemId}`, {
+                    method: 'DELETE',
+                    headers: this.getAuthHeaders()
+                })
+            );
+            
+            // Show loading state
+            const bulkDeleteBtn = document.querySelector('#bulkActions .btn-danger');
+            if (bulkDeleteBtn) {
+                bulkDeleteBtn.disabled = true;
+                bulkDeleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            }
+            
+            const results = await Promise.all(deletePromises);
+            const successful = results.filter(r => r.ok).length;
+            
+            // Clear selections and refresh
+            this.selectedItems.clear();
+            await this.loadMenuItems();
+            
+            this.showToast(`🗑️ ${successful}/${count} items deleted successfully!`, 'success');
+            
+        } catch (error) {
+            console.error('Error bulk deleting:', error);
+            this.showToast('Error during bulk delete', 'error');
+        }
+    }
+    
     // Category CRUD Operations
     openCategoryModal(categoryId = null) {
         const modal = document.getElementById('categoryModal');
@@ -705,6 +856,136 @@ class AdminPanel {
     deleteCategory(categoryId, categoryName) {
         this.deleteCategoryId = categoryId;
         this.openDeleteModal('category', categoryName);
+    }
+    
+    // Quick delete category without confirmation
+    async quickDeleteCategory(categoryId, categoryName) {
+        if (!confirm(`⚡ Quick Delete Category: "${categoryName}"?\n\nThis will also delete all menu items in this category!\nThis action cannot be undone.`)) {
+            return;
+        }
+        
+        try {
+            // Optimistic UI update - fade out the card
+            const card = document.querySelector(`div[data-category-id="${categoryId}"]`);
+            if (card) {
+                card.style.opacity = '0.5';
+                card.style.pointerEvents = 'none';
+            }
+            
+            const response = await fetch(`/api/admin/categories/${categoryId}`, {
+                method: 'DELETE',
+                headers: this.getAuthHeaders()
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                // Remove from local array for instant UI update
+                this.categories = this.categories.filter(cat => cat.id !== categoryId);
+                this.renderCategories();
+                await this.loadCategories(); // Refresh category selects
+                this.showToast(`⚡ "${categoryName}" category deleted quickly!`, 'success');
+            } else {
+                // Restore card if deletion failed
+                if (card) {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                }
+                this.showToast(result.message || 'Error deleting category', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting category:', error);
+            this.showToast('Error deleting category', 'error');
+            // Restore card
+            const card = document.querySelector(`div[data-category-id="${categoryId}"]`);
+            if (card) {
+                card.style.opacity = '1';
+                card.style.pointerEvents = 'auto';
+            }
+        }
+    }
+    
+    // Category bulk selection management
+    toggleCategorySelection(categoryId) {
+        if (this.selectedCategories.has(categoryId)) {
+            this.selectedCategories.delete(categoryId);
+        } else {
+            this.selectedCategories.add(categoryId);
+        }
+        this.updateCategoryBulkActions();
+    }
+    
+    selectAllCategories() {
+        const checkboxes = document.querySelectorAll('.category-checkbox-item');
+        const selectAll = document.getElementById('selectAllCategories');
+        
+        if (selectAll.checked) {
+            checkboxes.forEach(cb => {
+                cb.checked = true;
+                this.selectedCategories.add(parseInt(cb.value));
+            });
+        } else {
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+                this.selectedCategories.delete(parseInt(cb.value));
+            });
+        }
+        this.updateCategoryBulkActions();
+    }
+    
+    updateCategoryBulkActions() {
+        const bulkActions = document.getElementById('categoryBulkActions');
+        const selectedCount = document.getElementById('categorySelectedCount');
+        
+        if (bulkActions) {
+            if (this.selectedCategories.size > 0) {
+                bulkActions.style.display = 'flex';
+                if (selectedCount) {
+                    selectedCount.textContent = this.selectedCategories.size;
+                }
+            } else {
+                bulkActions.style.display = 'none';
+            }
+        }
+    }
+    
+    async bulkDeleteCategories() {
+        const count = this.selectedCategories.size;
+        if (count === 0) return;
+        
+        if (!confirm(`🗑️ Bulk Delete ${count} categories?\n\nThis will also delete ALL menu items in these categories!\nThis action cannot be undone.`)) {
+            return;
+        }
+        
+        try {
+            const deletePromises = Array.from(this.selectedCategories).map(categoryId => 
+                fetch(`/api/admin/categories/${categoryId}`, {
+                    method: 'DELETE',
+                    headers: this.getAuthHeaders()
+                })
+            );
+            
+            // Show loading state
+            const bulkDeleteBtn = document.querySelector('#categoryBulkActions .btn-danger');
+            if (bulkDeleteBtn) {
+                bulkDeleteBtn.disabled = true;
+                bulkDeleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            }
+            
+            const results = await Promise.all(deletePromises);
+            const successful = results.filter(r => r.ok).length;
+            
+            // Clear selections and refresh
+            this.selectedCategories.clear();
+            await this.loadCategories();
+            this.renderCategories();
+            
+            this.showToast(`🗑️ ${successful}/${count} categories deleted successfully!`, 'success');
+            
+        } catch (error) {
+            console.error('Error bulk deleting categories:', error);
+            this.showToast('Error during bulk delete', 'error');
+        }
     }
     
     // Delete Operations
@@ -837,6 +1118,53 @@ class AdminPanel {
                 }
             }, 300);
         }, 5000);
+    }
+    
+    bindKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + A - Select All
+            if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+                e.preventDefault();
+                
+                if (this.currentSection === 'menu-items') {
+                    const selectAll = document.getElementById('selectAllItems');
+                    if (selectAll) {
+                        selectAll.checked = !selectAll.checked;
+                        this.selectAllItems();
+                    }
+                } else if (this.currentSection === 'categories') {
+                    const selectAll = document.getElementById('selectAllCategories');
+                    if (selectAll) {
+                        selectAll.checked = !selectAll.checked;
+                        this.selectAllCategories();
+                    }
+                }
+            }
+            
+            // Delete key - Quick delete selected items/categories
+            if (e.key === 'Delete') {
+                e.preventDefault();
+                
+                if (this.currentSection === 'menu-items' && this.selectedItems.size > 0) {
+                    this.bulkDeleteItems();
+                } else if (this.currentSection === 'categories' && this.selectedCategories.size > 0) {
+                    this.bulkDeleteCategories();
+                }
+            }
+            
+            // Escape - Clear selections
+            if (e.key === 'Escape') {
+                if (this.currentSection === 'menu-items') {
+                    this.selectedItems.clear();
+                    document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = false);
+                    this.updateBulkActions();
+                } else if (this.currentSection === 'categories') {
+                    this.selectedCategories.clear();
+                    document.querySelectorAll('.category-checkbox-item').forEach(cb => cb.checked = false);
+                    this.updateCategoryBulkActions();
+                }
+            }
+        });
     }
     
     escapeHtml(text) {

@@ -12,10 +12,10 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div class="logo">
+            <!-- <div class="logo">
                 <img src="assets/images/brellogo.png" alt="Brel Cafe" class="logo-image">
                 <h2>Brel Admin</h2>
-            </div>
+            </div> -->
             <button class="sidebar-toggle" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
@@ -160,10 +160,29 @@
                     </select>
                 </div>
                 
+                <!-- Bulk Actions Bar -->
+                <div class="bulk-actions" id="bulkActions" style="display: none;">
+                    <div class="bulk-info">
+                        <i class="fas fa-check-square"></i>
+                        <span id="selectedCount">0</span> items selected
+                    </div>
+                    <div class="bulk-buttons">
+                        <button class="btn btn-danger" onclick="adminPanel.bulkDeleteItems()">
+                            <i class="fas fa-trash"></i> Delete Selected
+                        </button>
+                        <button class="btn btn-secondary" onclick="adminPanel.selectedItems.clear(); adminPanel.updateBulkActions(); document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = false);">
+                            <i class="fas fa-times"></i> Clear Selection
+                        </button>
+                    </div>
+                </div>
+                
                 <div class="items-table-container">
                     <table class="items-table" id="menuItemsTable">
                         <thead>
                             <tr>
+                                <th>
+                                    <input type="checkbox" id="selectAllItems" onchange="adminPanel.selectAllItems()" title="Select All (Ctrl+A)">
+                                </th>
                                 <th>Image</th>
                                 <th>Title (EN)</th>
                                 <th>Category</th>
@@ -183,9 +202,31 @@
             <section class="content-section" id="categories-section">
                 <div class="section-header">
                     <h2><i class="fas fa-tags"></i> Categories Management</h2>
-                    <button class="btn btn-primary" id="addCategoryBtn">
-                        <i class="fas fa-plus"></i> Add Category
-                    </button>
+                    <div class="header-actions">
+                        <label class="select-all-label">
+                            <input type="checkbox" id="selectAllCategories" onchange="adminPanel.selectAllCategories()" title="Select All (Ctrl+A)">
+                            <span>Select All</span>
+                        </label>
+                        <button class="btn btn-primary" id="addCategoryBtn">
+                            <i class="fas fa-plus"></i> Add Category
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Category Bulk Actions Bar -->
+                <div class="bulk-actions" id="categoryBulkActions" style="display: none;">
+                    <div class="bulk-info">
+                        <i class="fas fa-check-square"></i>
+                        <span id="categorySelectedCount">0</span> categories selected
+                    </div>
+                    <div class="bulk-buttons">
+                        <button class="btn btn-danger" onclick="adminPanel.bulkDeleteCategories()">
+                            <i class="fas fa-trash"></i> Delete Selected Categories
+                        </button>
+                        <button class="btn btn-secondary" onclick="adminPanel.selectedCategories.clear(); adminPanel.updateCategoryBulkActions(); document.querySelectorAll('.category-checkbox-item').forEach(cb => cb.checked = false);">
+                            <i class="fas fa-times"></i> Clear Selection
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="categories-grid" id="categoriesGrid">
